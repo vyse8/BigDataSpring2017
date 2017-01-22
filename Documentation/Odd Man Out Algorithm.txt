@@ -1,0 +1,41 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace UMKCProblemSets
+{
+    public class Program
+    {
+        static void Main(string[] args)
+        {
+            int[] intArray = new int[9] { 2, 5, 3, 3, 8, 5, 4, 2, 8 };
+            Array.Sort(intArray);
+            int count = 1;
+            for (int i = 1; i < intArray.Length; i++)
+            {
+                if(intArray[i] == intArray[i - 1])
+                {
+                    count++;
+                }
+                else
+                {
+                    if (count == 1)
+                    {
+                        if (i == 1)
+                        {
+                            Console.WriteLine("The answer is " + intArray[i - 1]);
+                        }
+                        else
+                        {
+                            Console.WriteLine("The answer is " + intArray[i]);
+                        }
+                        Console.ReadLine();
+                    }
+                    count = 0;
+                }                
+            }
+        }
+    }
+}
