@@ -37,8 +37,8 @@ public class Lab3UMKC {
     static List<Double> mainPoints = new ArrayList<Double>();
     public static void main(String args[]){
         String path = "input/bb.mkv";
-        //Frames(path);
-        //MainFrames();
+        Frames(path);
+        MainFrames();
         callClarifai();
     }
 
