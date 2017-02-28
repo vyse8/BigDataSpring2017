@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="@android:color/black"
+    tools:context="com.example.mattv.cognitivevisualrecognitiontracker.MainActivity">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/imageView"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:scaleType="fitXY"/>
+
+    <ImageButton
+        android:layout_height="100px"
+        android:layout_width="100px"
+        android:scaleType="fitCenter"
+        android:layout_gravity="left"
+        android:onClick="scrollToTop"
+        android:src="@drawable/voicerecorderbutton"
+        android:background="@null"
+        android:layout_marginLeft="99dp"
+        android:layout_marginStart="99dp"
+        android:id="@+id/imageButton"
+        android:layout_alignTop="@+id/imageButton2"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <ImageButton
+        android:layout_height="100px"
+        android:layout_width="100px"
+        android:layout_gravity="left"
+        android:onClick="scrollToTop"
+        android:src="@drawable/skipbutton"
+        android:background="@null"
+        android:scaleType="fitCenter"
+        android:layout_marginBottom="18dp"
+        android:layout_marginLeft="68dp"
+        android:layout_marginStart="68dp"
+        android:id="@+id/imageButton2"
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@+id/imageButton"
+        android:layout_toEndOf="@+id/imageButton" />
+
+</RelativeLayout>
