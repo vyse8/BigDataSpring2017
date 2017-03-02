@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="@android:color/black"
+    tools:context="com.example.mattv.cognitivevisualrecognitiontracker.MainActivity">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/imageView"
+        android:scaleType="fitXY"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="11dp"
+        android:layout_marginEnd="11dp" />
+
+    <ImageButton
+        android:layout_height="150px"
+        android:layout_width="150px"
+        android:layout_gravity="left"
+        android:onClick="scrollToTop"
+        android:src="@drawable/skipbutton"
+        android:background="@null"
+        android:scaleType="fitCenter"
+        android:id="@+id/imageButton2"
+        android:layout_marginLeft="50dp"
+        android:layout_marginStart="50dp"
+        android:layout_alignTop="@+id/imageButton"
+        android:layout_toRightOf="@+id/imageButton"
+        android:layout_toEndOf="@+id/imageButton" />
+
+    <ImageButton
+        android:layout_height="150px"
+        android:layout_width="150px"
+        android:scaleType="fitCenter"
+        android:layout_gravity="left"
+        android:onClick="scrollToTop"
+        android:src="@drawable/voicerecorderbutton"
+        android:background="@null"
+        android:layout_marginLeft="90dp"
+        android:layout_marginStart="90dp"
+        android:id="@+id/imageButton"
+        android:layout_marginBottom="12dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+</RelativeLayout>
