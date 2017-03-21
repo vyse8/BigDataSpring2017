@@ -1,15 +1,32 @@
 package com.example.mattv.cognitivevisualrecognitiontracker;
 
+import clarifai2.api.ClarifaiBuilder;
+import clarifai2.api.ClarifaiClient;
+import clarifai2.api.ClarifaiResponse;
+import clarifai2.dto.input.ClarifaiInput;
+import clarifai2.dto.input.image.ClarifaiImage;
+import clarifai2.dto.model.output.ClarifaiOutput;
+import clarifai2.dto.prediction.Concept;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.Image;
 import android.media.MediaRecorder;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.ParcelFileDescriptor;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.app.Activity;
@@ -27,22 +44,34 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.NoSuchElementException;
 import java.util.Random;
+
+import static android.R.attr.bitmap;
+import static com.example.mattv.cognitivevisualrecognitiontracker.R.id.imageView;
 
 public class MainActivity extends Activity {
     private final int REQ_CODE_SPEECH_INPUT = 100;
     public static String question = "";
+    public Bitmap icon;
+    public String encodedImage = "";
     ImageButton imageButton;
     ImageButton imageButton2;
     final Random rnd = new Random();
     TextToSpeech t1;
+    private static int RESULT_LOAD_IMAGE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,11 +88,12 @@ public class MainActivity extends Activity {
                 }
             }
         });
-        ImageView img = (ImageView) findViewById(R.id.imageView);
-        String str = "img_" + rnd.nextInt(5);
+        ImageView img = (ImageView) findViewById(imageView);
+        //String str = "img_" + rnd.nextInt(5);
+        //System.out.println(str + " On Load");
         img.setImageDrawable
                 (
-                        getResources().getDrawable(getResourceID(str, "drawable",
+                        getResources().getDrawable(getResourceID("main", "drawable",
                                 getApplicationContext()))
                 );
         voiceRecorderButton();
@@ -82,14 +112,19 @@ public class MainActivity extends Activity {
     }
 
     public void skipButton() {
-
         imageButton2 = (ImageButton) findViewById(R.id.imageButton2);
         imageButton2.setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View arg0) {
-                ImageView img = (ImageView) findViewById(R.id.imageView);
-                String str = "img_" + rnd.nextInt(6); //possibly make 5?
+                Intent i = new Intent(
+                        Intent.ACTION_PICK,
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+                startActivityForResult(i, RESULT_LOAD_IMAGE);
+                /*
+                String str = "img_" + rnd.nextInt(5); //possibly make 5?
+                System.out.println(str);
                 img.setImageDrawable
                         (
                                 getResources().getDrawable(getResourceID(str, "drawable",
@@ -97,10 +132,81 @@ public class MainActivity extends Activity {
                         );
                 String question = "This is a test";
                 System.out.println(question);
+                //Test Clarifai API call
+                //classifyImage();
                 //Send to HTTP Server Test
                 httpPostTest();
+                */
             }
         });
+    }
+
+    public class CallClarifaiTask extends AsyncTask<Void, Void, Boolean> {
+        protected Boolean doInBackground(Void... voids) {
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            try {
+                icon.compress(Bitmap.CompressFormat.PNG, 100, stream); //bm is the bitmap object
+                byte[] byteArray = stream.toByteArray();
+
+                String encodedImage = Base64.encodeToString(byteArray, Base64.DEFAULT);
+                final ClarifaiClient client = new ClarifaiBuilder("KKQIegBW9uOl_3vaMSzqq4QCfPNyNBvB7XNBz1vE", "xsY48eiDhhsFo5M7HE3F71ZYkB_tEQmemlWekTgG")
+                        .client(new OkHttpClient()) // OPTIONAL. Allows customization of OkHttp by the user
+                        .buildSync(); // or use .build() to get a Future<ClarifaiClient>
+                client.getToken();
+                try{
+                    ClarifaiResponse response = client.getDefaultModels().generalModel().predict()
+                            .withInputs(
+                                    //ClarifaiInput.forImage(ClarifaiImage.of(encodedImage)) //PASS BYTES
+                                    ClarifaiInput.forImage(ClarifaiImage.of(byteArray))
+                            )
+                            .executeSync();
+                    List<ClarifaiOutput<Concept>> predictions = (List<ClarifaiOutput<Concept>>) response.get();
+                    if (predictions.isEmpty()) {
+                        System.out.println("No Predictions");
+                    }
+                    List<Concept> data = predictions.get(0).data();
+                    for (int i = 0; i < data.size(); i++) {
+                        System.out.println(data.get(i).name() + " - " + data.get(i).value());
+                        //image.drawText(data.get(i).name(), (int)Math.floor(Math.random()*x), (int) Math.floor(Math.random()*y), HersheyFont.ASTROLOGY, 20, RGBColour.RED);
+                    }
+                    question = "This image is related to " + data.get(0).name() + ", " + data.get(1).name() + ", " + data.get(2).name() + " and " + data.get(3).name();
+                    data.clear();
+                    predictions.clear();
+                    byteArray = null;
+                    icon = null;
+                    stream = null;
+                }
+                catch (NoSuchElementException b)
+                {
+                    question = "No Such Element Exception";
+                    b.printStackTrace();
+                }
+
+            }
+            catch(NullPointerException a){
+                question = "Null Pointer Exception";
+                a.printStackTrace();
+            }
+
+            //} catch (IOException e) {
+            //    e.printStackTrace();
+            //}
+            return true;
+        }
+        @Override
+        protected void onPostExecute(Boolean result) {
+            String toSpeak = question;
+            Toast.makeText(getApplicationContext(), toSpeak,Toast.LENGTH_SHORT).show();
+            t1.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
+        }
+
+    }
+
+    public void classifyImage()
+    {
+        ImageView img = (ImageView) findViewById(imageView);
+        icon=((BitmapDrawable)img.getDrawable()).getBitmap();
+        new CallClarifaiTask().execute();
     }
     private void httpPostTest()
     {
@@ -150,7 +256,31 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        System.out.println("Entering Activity Result Function");
+        if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = { MediaStore.Images.Media.DATA };
 
+            Cursor cursor = getContentResolver().query(selectedImage,
+                    filePathColumn, null, null, null);
+            cursor.moveToFirst();
+
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close();
+
+            ImageView imageView = (ImageView) findViewById(R.id.imageView);
+
+            Bitmap bmp = null;
+            try {
+                bmp = getBitmapFromUri(selectedImage);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            imageView.setImageBitmap(bmp);
+
+        }
         switch (requestCode) {
             case REQ_CODE_SPEECH_INPUT: {
                 if (resultCode == RESULT_OK && null != data) {
@@ -161,14 +291,22 @@ public class MainActivity extends Activity {
                    /* Toast.makeText(MainActivity.this,
                             "You said '" + result.get(0) + "'.", Toast.LENGTH_LONG).show();
                     }*/
-                    question = result.get(0);
-                    String toSpeak = question;
-                    Toast.makeText(getApplicationContext(), toSpeak,Toast.LENGTH_SHORT).show();
-                    t1.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
+                    classifyImage();
+                    //question = result.get(0);
+
                 }
                 break;
             }
         }
+    }
+
+    private Bitmap getBitmapFromUri(Uri uri) throws IOException {
+        ParcelFileDescriptor parcelFileDescriptor =
+                getContentResolver().openFileDescriptor(uri, "r");
+        FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+        Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+        parcelFileDescriptor.close();
+        return image;
     }
 
     protected final static int getResourceID
@@ -189,5 +327,4 @@ public class MainActivity extends Activity {
             return ResourceID;
         }
     }
-
 }
