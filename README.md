@@ -8,4 +8,5 @@ Lab 4: https://github.com/vyse8/BigDataSpring2017/wiki/Lab-4 <br></br>
 Lab 5: https://github.com/vyse8/BigDataSpring2017/wiki/Lab-5 <br></br>
 Lab 6: https://github.com/vyse8/BigDataSpring2017/wiki/Lab-6 <br></br>
 Lab 7: https://github.com/vyse8/BigDataSpring2017/wiki/Lab-7 <br></br>
-Lab 8: https://github.com/vyse8/BigDataSpring2017/wiki/Lab-8
+Lab 8: https://github.com/vyse8/BigDataSpring2017/wiki/Lab-8 <br></br>
+Lab 9: https://github.com/vyse8/BigDataSpring2017/wiki/Lab-9
