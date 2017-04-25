@@ -10,30 +10,23 @@ import clarifai2.dto.prediction.Concept;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.AssetManager;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
-import android.media.Image;
-import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.os.ParcelFileDescriptor;
-import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
-import android.view.Window;
 import android.widget.ImageButton;
 import android.app.Activity;
-import android.os.Bundle;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -47,28 +40,30 @@ import okhttp3.Response;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.Random;
 
-import static android.R.attr.bitmap;
 import static com.example.mattv.cognitivevisualrecognitiontracker.R.id.imageView;
+import static com.example.mattv.cognitivevisualrecognitiontracker.R.id.imgButtonMetrics;
 
 public class MainActivity extends Activity {
     private final int REQ_CODE_SPEECH_INPUT = 100;
     public static String question = "";
+    public static String answer = "";
+    public static String imgName = "";
     public Bitmap icon;
     public String encodedImage = "";
-    ImageButton imageButton;
-    ImageButton imageButton2;
+    ImageButton imgButtonMic;
+    ImageButton imgButtonGallery;
+    ImageButton imgButtonMetrics;
     final Random rnd = new Random();
     TextToSpeech t1;
     private static int RESULT_LOAD_IMAGE = 1;
@@ -96,47 +91,31 @@ public class MainActivity extends Activity {
                         getResources().getDrawable(getResourceID("main", "drawable",
                                 getApplicationContext()))
                 );
-        voiceRecorderButton();
-        skipButton();
-    }
-    public void voiceRecorderButton() {
+        imgButtonMic = (ImageButton) findViewById(R.id.imgButtonMic);
+        imgButtonGallery = (ImageButton) findViewById(R.id.imgButtonGallery);
+        imgButtonMetrics = (ImageButton) findViewById(R.id.imgButtonMetrics);
 
-        imageButton = (ImageButton) findViewById(R.id.imageButton);
-        imageButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View arg0) {
-                promptSpeechInput();
+        imgButtonMic.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View view) {
+                System.out.println("Mic Clicked!");
+                promptSpeechInput();;
             }
         });
-    }
-
-    public void skipButton() {
-        imageButton2 = (ImageButton) findViewById(R.id.imageButton2);
-        imageButton2.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View arg0) {
+        imgButtonGallery.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View view) {
+                System.out.println("Gallery Clicked!");
                 Intent i = new Intent(
                         Intent.ACTION_PICK,
                         android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 
                 startActivityForResult(i, RESULT_LOAD_IMAGE);
-                /*
-                String str = "img_" + rnd.nextInt(5); //possibly make 5?
-                System.out.println(str);
-                img.setImageDrawable
-                        (
-                                getResources().getDrawable(getResourceID(str, "drawable",
-                                        getApplicationContext()))
-                        );
-                String question = "This is a test";
-                System.out.println(question);
-                //Test Clarifai API call
-                //classifyImage();
-                //Send to HTTP Server Test
-                httpPostTest();
-                */
+            }
+        });
+        imgButtonMetrics.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View view) {
+                System.out.println("Metrics Clicked!");
+                Intent myIntent = new Intent(view.getContext(), MetricsActivity.class);
+                startActivity(myIntent);
             }
         });
     }
@@ -169,7 +148,7 @@ public class MainActivity extends Activity {
                         System.out.println(data.get(i).name() + " - " + data.get(i).value());
                         //image.drawText(data.get(i).name(), (int)Math.floor(Math.random()*x), (int) Math.floor(Math.random()*y), HersheyFont.ASTROLOGY, 20, RGBColour.RED);
                     }
-                    question = "This image is related to " + data.get(0).name() + ", " + data.get(1).name() + ", " + data.get(2).name() + " and " + data.get(3).name();
+                    answer = "This image is related to " + data.get(0).name() + ", " + data.get(1).name() + ", " + data.get(2).name() + " and " + data.get(3).name();
                     data.clear();
                     predictions.clear();
                     byteArray = null;
@@ -178,13 +157,13 @@ public class MainActivity extends Activity {
                 }
                 catch (NoSuchElementException b)
                 {
-                    question = "No Such Element Exception";
+                    answer = "No Such Element Exception";
                     b.printStackTrace();
                 }
 
             }
             catch(NullPointerException a){
-                question = "Null Pointer Exception";
+                answer = "Null Pointer Exception";
                 a.printStackTrace();
             }
 
@@ -195,7 +174,7 @@ public class MainActivity extends Activity {
         }
         @Override
         protected void onPostExecute(Boolean result) {
-            String toSpeak = question;
+            String toSpeak = answer;
             Toast.makeText(getApplicationContext(), toSpeak,Toast.LENGTH_SHORT).show();
             t1.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
         }
@@ -207,6 +186,20 @@ public class MainActivity extends Activity {
         ImageView img = (ImageView) findViewById(imageView);
         icon=((BitmapDrawable)img.getDrawable()).getBitmap();
         new CallClarifaiTask().execute();
+        logResultToDB();
+    }
+    public void logResultToDB()
+    {
+        //DateFormat df = new SimpleDateFormat("dd MM yyyy, HH:mm");
+        DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+        String date = df.format(Calendar.getInstance().getTime());
+        //File file = Environment.getExternalStorageDirectory();
+        //System.out.println(file.toString());
+        SQLiteDatabase database = openOrCreateDatabase("metrics.db", MODE_PRIVATE, null);
+        //database.execSQL("drop table tblHistoryLog");
+        database.execSQL("create table if not exists tblHistoryLog(Question text,Answer text,ImgName text,Date date)");
+        database.execSQL("insert into tblHistoryLog values('" + question + "','" + answer + "','" + icon.toString() + "','" + date + "')");
+        database.close();
     }
     private void httpPostTest()
     {
@@ -292,7 +285,7 @@ public class MainActivity extends Activity {
                             "You said '" + result.get(0) + "'.", Toast.LENGTH_LONG).show();
                     }*/
                     classifyImage();
-                    //question = result.get(0);
+                    question = result.get(0);
 
                 }
                 break;

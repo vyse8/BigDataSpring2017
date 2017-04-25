@@ -1,0 +1,33 @@
+<!--ref: https://google-developers.appspot.com/chart/interactive/docs/gallery/columnchart-->
+<html>
+<head>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+google.setOnLoadCallback(drawChart);
+function drawChart() {
+
+  var data = google.visualization.arrayToDataTable([
+    ['Items', 'Value'],
+    [Android.getx1(),  Android.getNum1()],
+    [Android.getx2(),  Android.getNum2()]
+  ]);
+
+  var options = {
+    title: 'Questions Asked Per Date',
+    legend: 'none',
+    bold: 'true',
+    fontSize: '16'
+  };
+
+  var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+
+  chart.draw(data, options);
+
+}
+    </script>
+</head>
+<body>
+<div id="chart_div" style="width: 100%; height: 100%;"></div>
+</body>
+</html>

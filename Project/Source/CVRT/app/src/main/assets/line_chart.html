@@ -1,0 +1,30 @@
+<!--ref: https://google-developers.appspot.com/chart/interactive/docs/gallery/linechart-->
+<html>
+<head>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Items', 'Value'],
+          ['Item 1',  Android.getNum1()],
+          ['Item 2',  Android.getNum2()],
+          ['Item 3',  Android.getNum3()],
+          ['Item 4',  Android.getNum4()],
+          ['Item 5',  Android.getNum5()]
+        ]);
+
+        var options = {
+          title: 'Android-er: Google Charts example of Line chart'
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+    </script>
+</head>
+<body>
+<div id="chart_div" style="width: 100%; height: 100%;"></div>
+</body>
+</html>
